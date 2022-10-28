@@ -203,18 +203,18 @@ class EmbeddedLinear(nn.Module):
         
     @staticmethod
     def reshape_parameters(weight, bias):
-        raise NotImplementedError()
+        return weight[:, None, ...], bias[:, None, ...]
     
     def forward(self, x: torch.Tensor, s: torch.Tensor) -> torch.Tensor:
         
         """
-        x: (n, p)
+        x: (n, l, p)
         s: (n, 1)
         
         x' = W^[s] (x) + b^[s]
         """
         assert s.ndim == 1, s.shape
-        assert x.ndim == 2, x.shape
+        assert x.ndim == 3, x.shape
         assert x.shape[0] == s.shape[0], (x.shape, s.shape)
         
         s = s.to(torch.long)
@@ -225,8 +225,8 @@ class EmbeddedLinear(nn.Module):
         biases = self.bias[s][..., None]
 
         if x.ndim > 2:
-            weights, bias = self.reshape_parameters(weights, bias)
-        
+            weights, biases = self.reshape_parameters(weights, biases)
+
         res = weights @ x[..., None] + biases
 
         return torch.squeeze(res, dim=-1)
@@ -236,12 +236,12 @@ class NewSelfAttention(CutomizedBertSelfAttention):
     
     def __init__(self, config, position_embedding_type=None):
         
-        super.__init__(config,
-                       position_embedding_type=position_embedding_type)
+        super().__init__(config,
+                         position_embedding_type=position_embedding_type)
         
-        self.source_query = EmbeddedLinear(config.number_sources, config.hidden_size, config.hidden_size)
-        self.source_key = EmbeddedLinear(config.number_sources, config.hidden_size, config.hidden_size)
-        self.source_value = EmbeddedLinear(config.number_sources, config.hidden_size, config.hidden_size)
+        self.source_query = EmbeddedLinear(config.num_sources, config.hidden_size, config.hidden_size)
+        self.source_key = EmbeddedLinear(config.num_sources, config.hidden_size, config.hidden_size)
+        self.source_value = EmbeddedLinear(config.num_sources, config.hidden_size, config.hidden_size)
     
     def forward(self, hidden_states: torch.Tensor,
                 source_ids: torch.Tensor,

@@ -7,7 +7,7 @@ class NewConfig(BertConfig):
                  vocab_size=30522,
                  hidden_size=768,
                  num_sources=12,
-                 num_hidden_layers=12,
+                 num_hidden_layers=2,
                  num_attention_heads=12,
                  intermediate_size=3072,
                  hidden_act="gelu",
@@ -41,5 +41,6 @@ class NewConfig(BertConfig):
                          classifier_dropout,
                          **kwargs)
         
-        
         self.num_sources = num_sources
+        
+    
